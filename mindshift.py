@@ -4,6 +4,8 @@ import plotly.express as px
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 import numpy as np
+import sklearn
+
 
 # Login Functionality
 def login():

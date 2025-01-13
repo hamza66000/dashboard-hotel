@@ -4,8 +4,6 @@ import plotly.express as px
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 import numpy as np
-import sklearn
-
 
 # Login Functionality
 def login():
@@ -112,19 +110,29 @@ else:
             "Feedback Analysis",
             "Custom Charts",
             "KPIs",
-            "Advanced Analysis"  # <-- NEW/UPDATED SECTION
+            "Advanced Analysis",
+            "Cancellation & No-Show Analysis",
+            "Guest Retention & Repeat Visits",
+            "Marketing ROI & Campaign Performance",
+            "Operational Efficiency & Resource Allocation",
+            "Room Type Profitability Analysis",
+            "CLTV Estimation",
+            "Upselling & Cross-Selling"
         ]
         choice = st.sidebar.radio("Select a category", options)
 
         # ─────────────────────────────────────────────────────────────────────────
         #  DASHBOARD SECTIONS
         # ─────────────────────────────────────────────────────────────────────────
+
+        # ----------------------------- OVERVIEW --------------------------------
         if choice == "Overview":
             st.header("Overview of the Dataset")
             st.dataframe(filtered_data.head(10))
             st.write("**Dataset Statistics (Filtered)**")
             st.write(filtered_data.describe())
 
+        # ------------------------- REVENUE ANALYSIS ----------------------------
         elif choice == "Revenue Analysis":
             st.header("Revenue Analysis")
             if "TotalRevenue" in filtered_data.columns:
@@ -215,6 +223,7 @@ else:
             else:
                 st.write("No room revenue data available under the current filters.")
 
+        # ------------------------- GUEST ANALYSIS ------------------------------
         elif choice == "Guest Analysis":
             st.header("Guest Analysis (Filtered)")
 
@@ -275,6 +284,7 @@ else:
                 else:
                     st.write("No loyalty tier data available under the current filters.")
 
+        # -------------------------- SEASONALITY --------------------------------
         elif choice == "Seasonality":
             st.header("Seasonality Analysis (Filtered)")
             if "Date" in filtered_data.columns and filtered_data["Date"].notna().any():
@@ -304,6 +314,7 @@ else:
             else:
                 st.write("Invalid or missing Date column, seasonality analysis not possible.")
 
+        # --------------------- HOUSEKEEPING & LAUNDRY --------------------------
         elif choice == "Housekeeping & Laundry":
             st.header("Housekeeping & Laundry Analysis (Filtered)")
 
@@ -362,6 +373,7 @@ else:
                 else:
                     st.write("No laundry data available under the current filters.")
 
+        # ------------------------- FEEDBACK ANALYSIS ---------------------------
         elif choice == "Feedback Analysis":
             st.header("Guest Feedback Analysis (Filtered)")
             if "GuestFeedbackScore" in filtered_data.columns and "Date" in filtered_data.columns:
@@ -393,6 +405,7 @@ else:
             else:
                 st.write("**GuestFeedbackScore or Date column is missing.**")
 
+        # --------------------------- CUSTOM CHARTS -----------------------------
         elif choice == "Custom Charts":
             st.header("Custom Charts (Filtered)")
             department_columns = [
@@ -419,6 +432,7 @@ else:
                     It’s useful for seeing which areas bring in the most revenue.
                     """)
 
+        # ------------------------------- KPIs ----------------------------------
         elif choice == "KPIs":
             st.header("Key Performance Indicators (KPIs) (Filtered)")
             # Calculate KPIs only if columns exist
@@ -437,9 +451,7 @@ else:
             else:
                 st.write("Required columns for KPIs are missing in the filtered dataset.")
 
-        # ─────────────────────────────────────────────────────────────────────────
-        #  2) ADVANCED ANALYSIS: CORRELATION & SIMPLE SEGMENTATION (K-Means)
-        # ─────────────────────────────────────────────────────────────────────────
+        # ------------------------ ADVANCED ANALYSIS ----------------------------
         elif choice == "Advanced Analysis":
             st.header("Advanced Analysis (Easy Explanations)")
 
@@ -453,7 +465,7 @@ else:
             Even if you’re not a data expert, these tools can help you spot trends and make informed decisions.
             """)
 
-            # 2A) Correlation Analysis
+            # 1) Correlation Analysis
             st.subheader("1. Correlation Heatmap (Easy View)")
             st.write("""
             This heatmap shows how different columns relate to each other. 
@@ -485,7 +497,7 @@ else:
                 else:
                     st.write("No numeric columns found for correlation analysis under current filters.")
 
-            # 2B) Simple Guest Segmentation (K-Means)
+            # 2) Simple Guest Segmentation (K-Means)
             st.subheader("2. Guest Segmentation (K-Means)")
             st.write("""
             We can group guests into clusters based on how similar their behaviors or attributes are.
@@ -537,6 +549,296 @@ else:
             else:
                 st.write("Columns 'TotalRevenue' and/or 'GuestFeedbackScore' not found. Cannot perform K-Means segmentation.")
 
+        # ─────────────────────────────────────────────────────────────────────────
+        #         NEW SECTIONS ADDED BELOW
+        # ─────────────────────────────────────────────────────────────────────────
+
+        # ---------------- CANCELLATION & NO-SHOW ANALYSIS ----------------------
+        elif choice == "Cancellation & No-Show Analysis":
+            st.header("Cancellation & No-Show Analysis (Filtered)")
+
+            if "ReservationStatus" in filtered_data.columns:
+                # Count how many bookings are Completed, Canceled, or No-Show
+                status_counts = filtered_data["ReservationStatus"].value_counts().reset_index()
+                status_counts.columns = ["ReservationStatus", "Count"]
+
+                fig_status = px.pie(
+                    status_counts, 
+                    names="ReservationStatus", 
+                    values="Count", 
+                    title="Reservation Status Breakdown"
+                )
+                st.plotly_chart(fig_status)
+
+                st.write("**Trend Over Time**")
+                # Example: count the number of each status per month
+                if "Date" in filtered_data.columns and filtered_data["Date"].notna().any():
+                    monthly_status = (
+                        filtered_data
+                        .groupby([filtered_data["Date"].dt.to_period("M"), "ReservationStatus"])
+                        .size()
+                        .reset_index(name="Count")
+                    )
+                    monthly_status["Month"] = monthly_status["Date"].astype(str)
+
+                    fig_status_time = px.line(
+                        monthly_status, 
+                        x="Month", 
+                        y="Count", 
+                        color="ReservationStatus",
+                        title="Monthly Reservation Status Trend"
+                    )
+                    st.plotly_chart(fig_status_time)
+                else:
+                    st.write("No valid Date column to show time trends.")
+
+            else:
+                st.write("No 'ReservationStatus' column found. Cannot analyze cancellations or no-shows.")
+
+        # -------------- GUEST RETENTION & REPEAT VISITS ANALYSIS --------------
+        elif choice == "Guest Retention & Repeat Visits":
+            st.header("Guest Retention & Repeat Visits Analysis (Filtered)")
+            st.write("""
+            This section helps identify repeat guests vs. first-time guests, 
+            and how often guests return over time.
+            """)
+
+            if "GuestID" in filtered_data.columns:
+                # Count how many times each GuestID appears
+                visit_counts = filtered_data.groupby("GuestID").size().reset_index(name="VisitCount")
+
+                # Merge visit counts back to the filtered_data if needed (only if you want further breakdown)
+                # For now, let's just show distribution
+                st.subheader("Visit Count Distribution")
+                fig_visits = px.histogram(
+                    visit_counts, 
+                    x="VisitCount", 
+                    nbins=20, 
+                    title="Distribution of Guest Visit Counts"
+                )
+                st.plotly_chart(fig_visits)
+
+                # Example classification: if VisitCount > 1, repeat guest; else first-time
+                visit_counts["GuestType"] = visit_counts["VisitCount"].apply(lambda x: "Repeat" if x > 1 else "First-Time")
+                classification_counts = visit_counts["GuestType"].value_counts().reset_index()
+                classification_counts.columns = ["GuestType", "Count"]
+
+                fig_class = px.pie(
+                    classification_counts, 
+                    names="GuestType", 
+                    values="Count", 
+                    title="First-Time vs. Repeat Guests"
+                )
+                st.plotly_chart(fig_class)
+
+            else:
+                st.write("No 'GuestID' column found. Cannot analyze repeat visits or retention.")
+
+        # --------- MARKETING ROI & CAMPAIGN PERFORMANCE ANALYSIS --------------
+        elif choice == "Marketing ROI & Campaign Performance":
+            st.header("Marketing ROI & Campaign Performance (Filtered)")
+
+            st.write("""
+            Evaluate how effective your marketing spend is at generating revenue, 
+            and compare different marketing channels or campaigns.
+            """)
+
+            # Basic ROI: TotalRevenue / MarketingSpend
+            if "TotalRevenue" in filtered_data.columns and "MarketingSpend" in filtered_data.columns:
+                total_marketing_spend = filtered_data["MarketingSpend"].sum()
+                total_revenue = filtered_data["TotalRevenue"].sum()
+
+                if total_marketing_spend > 0:
+                    roi_value = total_revenue / total_marketing_spend
+                    st.metric("Overall ROI (Revenue/MarketingSpend)", f"{roi_value:.2f}")
+                else:
+                    st.write("No Marketing Spend available (sum is 0).")
+
+                # Breakdown by MarketingChannel if present
+                if "MarketingChannel" in filtered_data.columns:
+                    channel_df = filtered_data.groupby("MarketingChannel").agg({
+                        "MarketingSpend": "sum",
+                        "TotalRevenue": "sum"
+                    }).reset_index()
+
+                    # Avoid divide by zero
+                    channel_df["ROI"] = channel_df.apply(
+                        lambda row: row["TotalRevenue"] / row["MarketingSpend"] if row["MarketingSpend"] else 0, 
+                        axis=1
+                    )
+
+                    fig_channel = px.bar(
+                        channel_df, 
+                        x="MarketingChannel", 
+                        y="ROI",
+                        title="ROI by Marketing Channel",
+                        hover_data=["MarketingSpend", "TotalRevenue"]
+                    )
+                    st.plotly_chart(fig_channel)
+
+            else:
+                st.write("Missing 'TotalRevenue' or 'MarketingSpend' columns. Cannot calculate marketing ROI.")
+
+        # ---- OPERATIONAL EFFICIENCY & RESOURCE ALLOCATION ANALYSIS -----------
+        elif choice == "Operational Efficiency & Resource Allocation":
+            st.header("Operational Efficiency & Resource Allocation (Filtered)")
+            st.write("""
+            Analyze staffing levels, occupancy, maintenance tickets, and other operational metrics to 
+            optimize resource allocation.
+            """)
+
+            # Example: Compare staffing (HousekeepingStaffCount) vs. OccupiedRooms
+            if "HousekeepingStaffCount" in filtered_data.columns and "OccupiedRooms" in filtered_data.columns:
+                staff_vs_occupancy = filtered_data.groupby(filtered_data["Date"].dt.to_period("M")).agg({
+                    "HousekeepingStaffCount": "mean",
+                    "OccupiedRooms": "mean"
+                }).reset_index()
+                staff_vs_occupancy["Date"] = staff_vs_occupancy["Date"].astype(str)
+
+                fig_staff = px.line(
+                    staff_vs_occupancy,
+                    x="Date",
+                    y=["HousekeepingStaffCount", "OccupiedRooms"],
+                    title="Staffing Levels vs. Occupancy (Monthly Average)",
+                    markers=True
+                )
+                st.plotly_chart(fig_staff)
+            else:
+                st.write("Required columns for staffing vs occupancy not found.")
+
+            # Example placeholder: Maintenance tickets (if you had a MaintenanceTickets column)
+            if "MaintenanceTickets" in filtered_data.columns:
+                maint_monthly = (
+                    filtered_data
+                    .groupby(filtered_data["Date"].dt.to_period("M"))["MaintenanceTickets"]
+                    .sum()
+                    .reset_index()
+                )
+                maint_monthly["Date"] = maint_monthly["Date"].astype(str)
+
+                fig_maint = px.bar(
+                    maint_monthly,
+                    x="Date",
+                    y="MaintenanceTickets",
+                    title="Monthly Maintenance Tickets"
+                )
+                st.plotly_chart(fig_maint)
+            else:
+                st.write("No 'MaintenanceTickets' column found to analyze service requests.")
+
+        # ----------------- ROOM TYPE PROFITABILITY ANALYSIS -------------------
+        elif choice == "Room Type Profitability Analysis":
+            st.header("Room Type Profitability Analysis (Filtered)")
+            st.write("""
+            Analyze the net revenue, profit margin (if costs are available), and occupancy rates by room type
+            to see which room types are most profitable.
+            """)
+
+            # Example: Summaries by room type columns if they exist
+            # SingleRoomRevenue, DoubleRoomRevenue, RoyalRoomRevenue
+            if all(col in filtered_data.columns for col in ["SingleRoomRevenue", "DoubleRoomRevenue", "RoyalRoomRevenue"]):
+                profitability_df = pd.DataFrame({
+                    "SingleRoomRevenue": [filtered_data["SingleRoomRevenue"].sum()],
+                    "DoubleRoomRevenue": [filtered_data["DoubleRoomRevenue"].sum()],
+                    "RoyalRoomRevenue": [filtered_data["RoyalRoomRevenue"].sum()],
+                })
+                melted = profitability_df.melt(var_name="RoomType", value_name="Revenue")
+
+                fig_room_revenue = px.bar(
+                    melted,
+                    x="RoomType",
+                    y="Revenue",
+                    title="Total Revenue by Room Type (Filtered)"
+                )
+                st.plotly_chart(fig_room_revenue)
+            else:
+                st.write("No room-type revenue columns found (SingleRoomRevenue, DoubleRoomRevenue, RoyalRoomRevenue).")
+
+            # Occupancy rates per room type (very rough, depends on your data design)
+            # If you track SingleRoomsOccupied, DoubleRoomsOccupied, RoyalRoomsOccupied
+            if all(col in filtered_data.columns for col in ["SingleRoomsOccupied", "DoubleRoomsOccupied", "RoyalRoomsOccupied", "AvailableRooms"]):
+                # Summation approach
+                total_single_occupied = filtered_data["SingleRoomsOccupied"].sum()
+                total_double_occupied = filtered_data["DoubleRoomsOccupied"].sum()
+                total_royal_occupied = filtered_data["RoyalRoomsOccupied"].sum()
+                total_rooms_available = filtered_data["AvailableRooms"].sum()
+
+                st.subheader("Room Type Occupancy (Aggregated)")
+                st.write(f"**Single Rooms Occupied (sum):** {total_single_occupied}")
+                st.write(f"**Double Rooms Occupied (sum):** {total_double_occupied}")
+                st.write(f"**Royal Rooms Occupied (sum):** {total_royal_occupied}")
+                st.write(f"**Total 'AvailableRooms' (sum):** {total_rooms_available}")
+            else:
+                st.write("Cannot calculate occupancy rates by room type—columns are missing.")
+
+        # --------------------- CLTV (CUSTOMER LIFETIME VALUE) ------------------
+        elif choice == "CLTV Estimation":
+            st.header("Customer Lifetime Value (CLTV) Estimation (Filtered)")
+            st.write("""
+            Estimate how valuable each guest is over their entire “lifetime” with your property.
+            This can guide marketing and retention strategies.
+            """)
+
+            if "GuestID" in filtered_data.columns and "TotalRevenue" in filtered_data.columns:
+                # Example approach:
+                # 1) Sum revenue by GuestID
+                # 2) Count visits by GuestID
+                # 3) CLTV = sum revenue per guest (or average revenue per visit * number of visits)
+                grouped = filtered_data.groupby("GuestID").agg({
+                    "TotalRevenue": "sum"
+                }).reset_index()
+                grouped.rename(columns={"TotalRevenue": "TotalSpent"}, inplace=True)
+
+                # Simple example: we define CLTV as total spent (not factoring in advanced churn modeling)
+                grouped["CLTV"] = grouped["TotalSpent"]  # Placeholder
+
+                st.subheader("Top 10 Guests by CLTV")
+                top_10 = grouped.nlargest(10, "CLTV")
+                fig_cltv = px.bar(
+                    top_10,
+                    x="GuestID",
+                    y="CLTV",
+                    title="Top 10 Guests by Estimated CLTV"
+                )
+                st.plotly_chart(fig_cltv)
+            else:
+                st.write("Missing 'GuestID' or 'TotalRevenue' columns for CLTV calculation.")
+
+        # ----------------- UPSELLING & CROSS-SELLING ANALYSIS ------------------
+        elif choice == "Upselling & Cross-Selling":
+            st.header("Upselling & Cross-Selling Analysis (Filtered)")
+            st.write("""
+            Review revenue from upsells (like spa, F&B, or room upgrades) and see which items or services 
+            are most popular among guests.
+            """)
+
+            # Placeholder: Summation of additional revenue columns
+            potential_upsell_cols = ["F&B Revenue", "Spa Revenue", "Event Revenue", "RestaurantRevenue", "MerchandiseRevenue"]
+            upsell_cols_present = [col for col in potential_upsell_cols if col in filtered_data.columns]
+
+            if upsell_cols_present:
+                upsell_sums = filtered_data[upsell_cols_present].sum().reset_index()
+                upsell_sums.columns = ["UpsellCategory", "TotalRevenue"]
+                fig_upsell = px.pie(
+                    upsell_sums, 
+                    names="UpsellCategory", 
+                    values="TotalRevenue",
+                    title="Upsell/Cross-Sell Revenue Breakdown"
+                )
+                st.plotly_chart(fig_upsell)
+
+                st.write("**Correlation with TotalRevenue**")
+                # Check correlation if "TotalRevenue" is present
+                if "TotalRevenue" in filtered_data.columns:
+                    for col in upsell_cols_present:
+                        correlation = filtered_data[[col, "TotalRevenue"]].corr().iloc[0,1]
+                        st.write(f"- Correlation between {col} and TotalRevenue: **{correlation:.2f}**")
+                else:
+                    st.write("No 'TotalRevenue' column to check correlation with upsell items.")
+            else:
+                st.write("No dedicated upsell/cross-sell columns found (e.g., F&B Revenue, Spa Revenue, etc.).")
+
+        # ------------------------ SIDEBAR FOOTER -------------------------------
         st.sidebar.write("For inquiries, contact us at htssociete@hotmail.com.")
 
     else:

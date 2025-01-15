@@ -48,19 +48,21 @@ else:
         else:
             data["Year"] = 0  # fallback if Date is missing
 
-        # Calculate Rooms Revenue Per Year
+        # Calculate Rooms Revenue Per Year (including Family Room)
         if "ADR" in data.columns:
             data["SingleRoomRevenue"] = data.get("SingleRoomsOccupied", 0) * data["ADR"]
             data["DoubleRoomRevenue"] = data.get("DoubleRoomsOccupied", 0) * data["ADR"]
             data["RoyalRoomRevenue"] = data.get("RoyalRoomsOccupied", 0) * data["ADR"]
+            data["FamilyRoomRevenue"] = data.get("FamilyRoomsOccupied", 0) * data["ADR"]  # Add Family Room
         else:
             # If no ADR column, create placeholders
             data["SingleRoomRevenue"] = 0
             data["DoubleRoomRevenue"] = 0
             data["RoyalRoomRevenue"] = 0
+            data["FamilyRoomRevenue"] = 0  # Add Family Room
 
         room_revenue_per_year = (
-            data.groupby("Year")[["SingleRoomRevenue", "DoubleRoomRevenue", "RoyalRoomRevenue"]]
+            data.groupby("Year")[["SingleRoomRevenue", "DoubleRoomRevenue", "RoyalRoomRevenue", "FamilyRoomRevenue"]]
             .sum()
             .reset_index()
             .melt(id_vars=["Year"], var_name="RoomType", value_name="Revenue")
@@ -199,11 +201,11 @@ else:
                     If it's weak, you may need to adjust marketing strategy or targeting.
                     """)
 
-            # Rooms Revenue per Year
+            # Rooms Revenue per Year (including Family Room)
             st.write("**Rooms Revenue per Year** (Filtered)")
             filtered_room_revenue_per_year = (
                 filtered_data
-                .groupby("Year")[["SingleRoomRevenue", "DoubleRoomRevenue", "RoyalRoomRevenue"]]
+                .groupby("Year")[["SingleRoomRevenue", "DoubleRoomRevenue", "RoyalRoomRevenue", "FamilyRoomRevenue"]]
                 .sum()
                 .reset_index()
                 .melt(id_vars=["Year"], var_name="RoomType", value_name="Revenue")
@@ -217,7 +219,7 @@ else:
                 st.plotly_chart(fig_rooms)
                 if st.button("Explain Rooms Revenue by Year"):
                     st.markdown("""
-                    This compares revenue from Single, Double, and Royal rooms over different years.
+                    This compares revenue from Single, Double, Royal, and Family rooms over different years.
                     It helps you see which type of room generates the most revenue and how it changes yearly.
                     """)
             else:
@@ -735,12 +737,13 @@ else:
             """)
 
             # Example: Summaries by room type columns if they exist
-            # SingleRoomRevenue, DoubleRoomRevenue, RoyalRoomRevenue
-            if all(col in filtered_data.columns for col in ["SingleRoomRevenue", "DoubleRoomRevenue", "RoyalRoomRevenue"]):
+            # SingleRoomRevenue, DoubleRoomRevenue, RoyalRoomRevenue, FamilyRoomRevenue
+            if all(col in filtered_data.columns for col in ["SingleRoomRevenue", "DoubleRoomRevenue", "RoyalRoomRevenue", "FamilyRoomRevenue"]):
                 profitability_df = pd.DataFrame({
                     "SingleRoomRevenue": [filtered_data["SingleRoomRevenue"].sum()],
                     "DoubleRoomRevenue": [filtered_data["DoubleRoomRevenue"].sum()],
                     "RoyalRoomRevenue": [filtered_data["RoyalRoomRevenue"].sum()],
+                    "FamilyRoomRevenue": [filtered_data["FamilyRoomRevenue"].sum()],  # Add Family Room
                 })
                 melted = profitability_df.melt(var_name="RoomType", value_name="Revenue")
 
@@ -752,21 +755,23 @@ else:
                 )
                 st.plotly_chart(fig_room_revenue)
             else:
-                st.write("No room-type revenue columns found (SingleRoomRevenue, DoubleRoomRevenue, RoyalRoomRevenue).")
+                st.write("No room-type revenue columns found (SingleRoomRevenue, DoubleRoomRevenue, RoyalRoomRevenue, FamilyRoomRevenue).")
 
             # Occupancy rates per room type (very rough, depends on your data design)
-            # If you track SingleRoomsOccupied, DoubleRoomsOccupied, RoyalRoomsOccupied
-            if all(col in filtered_data.columns for col in ["SingleRoomsOccupied", "DoubleRoomsOccupied", "RoyalRoomsOccupied", "AvailableRooms"]):
+            # If you track SingleRoomsOccupied, DoubleRoomsOccupied, RoyalRoomsOccupied, FamilyRoomsOccupied
+            if all(col in filtered_data.columns for col in ["SingleRoomsOccupied", "DoubleRoomsOccupied", "RoyalRoomsOccupied", "FamilyRoomsOccupied", "AvailableRooms"]):
                 # Summation approach
                 total_single_occupied = filtered_data["SingleRoomsOccupied"].sum()
                 total_double_occupied = filtered_data["DoubleRoomsOccupied"].sum()
                 total_royal_occupied = filtered_data["RoyalRoomsOccupied"].sum()
+                total_family_occupied = filtered_data["FamilyRoomsOccupied"].sum()  # Add Family Room
                 total_rooms_available = filtered_data["AvailableRooms"].sum()
 
                 st.subheader("Room Type Occupancy (Aggregated)")
                 st.write(f"**Single Rooms Occupied (sum):** {total_single_occupied}")
                 st.write(f"**Double Rooms Occupied (sum):** {total_double_occupied}")
                 st.write(f"**Royal Rooms Occupied (sum):** {total_royal_occupied}")
+                st.write(f"**Family Rooms Occupied (sum):** {total_family_occupied}")  # Add Family Room
                 st.write(f"**Total 'AvailableRooms' (sum):** {total_rooms_available}")
             else:
                 st.write("Cannot calculate occupancy rates by room type—columns are missing.")

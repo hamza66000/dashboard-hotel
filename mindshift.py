@@ -162,11 +162,17 @@ else:
                         title="Weekly Revenue (Filtered)", markers=True
                     )
                     st.plotly_chart(fig_weekly)
-                    if st.button("Explain Weekly Revenue"):
+                    with st.expander("Explain Weekly Revenue"):
                         st.markdown("""
                         **Weekly Revenue** shows how total revenue fluctuates each week within the filtered range.
                         This helps identify periods of higher or lower demand, which can inform pricing or
                         marketing decisions for those weeks.
+                        """)
+                        # Arabic explanation
+                        st.markdown("""
+                        **الإيرادات الأسبوعية** تُظهر كيف تتغير الإيرادات الإجمالية كل أسبوع ضمن النطاق المحدد.
+                        يساعد ذلك في تحديد الفترات ذات الطلب الأعلى أو الأقل، مما يمكن أن يوجّه قرارات التسعير
+                        أو التسويق لتلك الأسابيع.
                         """)
                 else:
                     st.write("No data available for weekly revenue with current filters.")
@@ -179,12 +185,19 @@ else:
                     trendline="ols", title="ADR vs Total Revenue"
                 )
                 st.plotly_chart(fig_adr)
-                if st.button("Explain ADR vs Total Revenue"):
+                with st.expander("Explain ADR vs Total Revenue"):
                     st.markdown("""
                     This chart shows how changes in Average Daily Rate (ADR) affect total revenue.
                     A positive correlation suggests that higher room prices may lead to higher total revenue.
                     However, occupancy and other factors also play important roles.
                     """)
+                    st.markdown("""
+                    **يُظهر هذا الرسم البياني كيف تؤثر التغييرات في متوسط السعر اليومي (ADR) على إجمالي الإيرادات.
+                    يشير الارتباط الإيجابي إلى أن ارتفاع أسعار الغرف قد يؤدي إلى زيادة إجمالي الإيرادات.
+                    ومع ذلك، فإن معدل الإشغال والعوامل الأخرى تلعب أيضًا أدوارًا مهمة.
+                    """)
+                    
+                    
 
             # Marketing Spend vs Total Revenue
             if "MarketingSpend" in filtered_data.columns and "TotalRevenue" in filtered_data.columns:
@@ -194,15 +207,21 @@ else:
                     trendline="ols", title="Marketing Spend vs Total Revenue"
                 )
                 st.plotly_chart(fig_mktg)
-                if st.button("Explain Marketing Spend vs Total Revenue"):
-                    st.markdown("""
-                    This chart highlights how your marketing budget correlates with total revenue.
-                    A strong correlation would suggest your marketing campaigns are effective at driving revenue.
-                    If it's weak, you may need to adjust marketing strategy or targeting.
-                    """)
+                with st.expander("Explain Marketing Spend vs Total Revenue"):
+                     st.markdown("""
+    This chart highlights how your marketing budget correlates with total revenue.
+    A strong correlation would suggest your marketing campaigns are effective at driving revenue.
+    If it's weak, you may need to adjust your marketing strategy or targeting.
+    """)
+                     st.markdown("""
+    **يُظهر هذا الرسم البياني كيف ترتبط ميزانيتك التسويقية بإجمالي الإيرادات.**
+    **يشير الارتباط القوي إلى أن حملاتك التسويقية فعالة في زيادة الإيرادات.**
+    **إذا كان الارتباط ضعيفًا، فقد تحتاج إلى تعديل استراتيجية التسويق أو استهداف الجمهور.**
+    """)
+
 
             # Rooms Revenue per Year (including Family Room)
-            st.write("**Rooms Revenue per Year** (Filtered)")
+            st.write("**Rooms Revenue per Year**")
             filtered_room_revenue_per_year = (
                 filtered_data
                 .groupby("Year")[["SingleRoomRevenue", "DoubleRoomRevenue", "RoyalRoomRevenue", "FamilyRoomRevenue"]]
@@ -217,17 +236,22 @@ else:
                     barmode="group", title="Rooms Revenue by Year"
                 )
                 st.plotly_chart(fig_rooms)
-                if st.button("Explain Rooms Revenue by Year"):
-                    st.markdown("""
+                with st.expander("Explain Rooms Revenue by Year"):
+                     st.markdown("""
                     This compares revenue from Single, Double, Royal, and Family rooms over different years.
                     It helps you see which type of room generates the most revenue and how it changes yearly.
                     """)
+                     st.markdown("""
+                    يقارن هذا الرسم البياني الإيرادات من الغرف الفردية والمزدوجة والغرف الملكية والعائلية على مدار سنوات مختلفة.
+                    يساعدك على رؤية نوع الغرفة الذي يحقق أكبر إيرادات وكيف يتغير سنويًا.
+                    """)
+
             else:
                 st.write("No room revenue data available under the current filters.")
 
         # ------------------------- GUEST ANALYSIS ------------------------------
         elif choice == "Guest Analysis":
-            st.header("Guest Analysis (Filtered)")
+            st.header("Guest Analysis")
 
             # Nationality Distribution
             if "Nationality" in filtered_data.columns:
@@ -240,11 +264,16 @@ else:
                         title="Guest Nationality Breakdown"
                     )
                     st.plotly_chart(fig_nat)
-                    if st.button("Explain Nationality Breakdown"):
+                    with st.expander("Explain Nationality Breakdown"):
                         st.markdown("""
                         This pie chart shows the proportion of guests coming from each nationality.
                         Large slices indicate key markets you can target for specialized services or promotions.
                         """)
+                        st.markdown("""
+                      يُظهر هذا الرسم البياني الدائري نسبة الضيوف القادمين من كل جنسية.
+تشير الشرائح الكبيرة إلى الأسواق الرئيسية التي يمكنك استهدافها بخدمات أو عروض ترويجية مخصصة.
+
+                     """)
                 else:
                     st.write("No nationality data available under the current filters.")
 
@@ -259,10 +288,15 @@ else:
                         title="Guest Age Group Distribution"
                     )
                     st.plotly_chart(fig_age)
-                    if st.button("Explain Age Group Distribution"):
+                    with st.expander("Explain Age Group Distribution"):
                         st.markdown("""
                         This bar chart shows the number of guests in each age group, indicating
                         which age segment is most common. You can use this information for tailored amenities.
+                        """)
+                        st.markdown("""
+يُظهر هذا الرسم البياني العمودي عدد الضيوف في كل فئة عمرية، مما يشير إلى
+أي شريحة عمرية هي الأكثر شيوعًا. يمكنك استخدام هذه المعلومات لتوفير وسائل راحة مخصصة.
+
                         """)
                 else:
                     st.write("No age group data available under the current filters.")
@@ -278,17 +312,22 @@ else:
                         title="Loyalty Tier Distribution"
                     )
                     st.plotly_chart(fig_loyalty)
-                    if st.button("Explain Loyalty Tier Distribution"):
+                    with st.expander("Explain Loyalty Tier Distribution"):
                         st.markdown("""
                         This chart shows how many guests fall into each loyalty tier.
                         If you have a large number of top-tier members, consider special offers to keep them engaged.
+                        """)
+                        st.markdown("""
+يُظهر هذا الرسم البياني عدد الضيوف في كل مستوى ولاء.
+إذا كان لديك عدد كبير من الأعضاء في المستوى الأعلى، ففكر في تقديم عروض خاصة لإبقائهم متفاعلين.
+
                         """)
                 else:
                     st.write("No loyalty tier data available under the current filters.")
 
         # -------------------------- SEASONALITY --------------------------------
         elif choice == "Seasonality":
-            st.header("Seasonality Analysis (Filtered)")
+            st.header("Seasonality Analysis")
             if "Date" in filtered_data.columns and filtered_data["Date"].notna().any():
                 if "Month" not in filtered_data.columns:
                     filtered_data["Month"] = filtered_data["Date"].dt.month_name()
@@ -303,11 +342,17 @@ else:
                             title="Monthly Revenue Trend (Filtered)", markers=True
                         )
                         st.plotly_chart(fig_month)
-                        if st.button("Explain Seasonality Trend"):
+                        with st.expander("Explain Seasonality Trend"):
                             st.markdown("""
                             This line chart shows how revenue changes month-to-month.
                             Noting which months bring in the most or least revenue can guide
                             staffing, pricing, and promotions.
+                            """)
+                            st.markdown("""
+يُظهر هذا الرسم البياني الخطي كيفية تغير الإيرادات من شهر لآخر.
+يمكن أن تساعدك ملاحظة الأشهر التي تحقق أعلى أو أقل إيرادات في توجيه
+التوظيف والتسعير والعروض الترويجية.
+
                             """)
                     else:
                         st.write("No monthly revenue data available for current filters.")
@@ -318,7 +363,7 @@ else:
 
         # --------------------- HOUSEKEEPING & LAUNDRY --------------------------
         elif choice == "Housekeeping & Laundry":
-            st.header("Housekeeping & Laundry Analysis (Filtered)")
+            st.header("Housekeeping & Laundry Analysis")
 
             # Housekeeping Over Time
             if "HousekeepingExpenses" in filtered_data.columns:
@@ -334,15 +379,20 @@ else:
                         housekeeping_data, 
                         x="Month", 
                         y="HousekeepingExpenses",
-                        title="Monthly Housekeeping Expenses (Filtered)",
+                        title="Monthly Housekeeping Expenses",
                         markers=True
                     )
                     st.plotly_chart(fig_hk)
-                    if st.button("Explain Housekeeping Expenses"):
+                    with st.expander("Explain Housekeeping Expenses"):
                         st.markdown("""
                         This line chart helps identify patterns or spikes in Housekeeping Expenses.
                         Sudden jumps might need investigation, while stable expenses suggest
                         consistent operations.
+                        """)
+                        st.markdown("""
+يساعد هذا الرسم البياني الخطي في تحديد الأنماط أو الارتفاعات المفاجئة في مصروفات النظافة.
+قد تحتاج الارتفاعات المفاجئة إلى التحقيق، بينما تشير المصروفات المستقرة إلى
+عمليات ثابتة.
                         """)
                 else:
                     st.write("No housekeeping expense data under the current filters.")
@@ -364,20 +414,24 @@ else:
                         x="Month", 
                         y=["LaundryRevenue", "LaundryExpenses"], 
                         barmode="group", 
-                        title="Laundry Revenue vs. Expenses (Filtered)"
+                        title="Laundry Revenue vs. Expenses"
                     )
                     st.plotly_chart(fig_laundry)
-                    if st.button("Explain Laundry Revenue vs. Expenses"):
+                    with st.expander("Explain Laundry Revenue vs. Expenses"):
                         st.markdown("""
                         This bar chart compares revenue from laundry services with the related expenses.
                         If expenses consistently exceed revenue, it may be time to optimize operations or pricing.
+                        """)
+                        st.markdown("""
+يُقارن هذا الرسم البياني العمودي الإيرادات من خدمات الغسيل مع المصروفات ذات الصلة.
+إذا كانت المصروفات تتجاوز الإيرادات باستمرار، فقد يكون الوقت قد حان لتحسين العمليات أو التسعير.
                         """)
                 else:
                     st.write("No laundry data available under the current filters.")
 
         # ------------------------- FEEDBACK ANALYSIS ---------------------------
         elif choice == "Feedback Analysis":
-            st.header("Guest Feedback Analysis (Filtered)")
+            st.header("Guest Feedback Analysis")
             if "GuestFeedbackScore" in filtered_data.columns and "Date" in filtered_data.columns:
                 feedback_monthly = (
                     filtered_data
@@ -392,15 +446,20 @@ else:
                         feedback_monthly, 
                         x="Month", 
                         y="GuestFeedbackScore", 
-                        title="Monthly Average Guest Feedback Score (Filtered)", 
+                        title="Monthly Average Guest Feedback Score", 
                         markers=True
                     )
                     st.plotly_chart(fig_feedback)
-                    if st.button("Explain Guest Feedback Trends"):
+                    with st.expander("Explain Guest Feedback Trends"):
                         st.markdown("""
                         This line chart shows how satisfied guests are over time.
                         Identifying dips in the feedback score can help you investigate
                         any issues guests may be facing and take corrective action.
+                        """)
+                        st.markdown("""
+يُظهر هذا الرسم البياني الخطي مدى رضا الضيوف بمرور الوقت.
+يمكن أن تساعدك تحديد الانخفاضات في تقييم الضيوف في التحقيق
+في أي مشكلات قد يواجهها الضيوف واتخاذ إجراءات تصحيحية.
                         """)
                 else:
                     st.write("No feedback data available under the current filters.")
@@ -409,7 +468,7 @@ else:
 
         # --------------------------- CUSTOM CHARTS -----------------------------
         elif choice == "Custom Charts":
-            st.header("Custom Charts (Filtered)")
+            st.header("Departments Charts")
             department_columns = [
                 "F&B Revenue",
                 "Spa Revenue",
@@ -428,15 +487,19 @@ else:
                     title="Revenue Breakdown by Department (Filtered)"
                 )
                 st.plotly_chart(fig_dept)
-                if st.button("Explain Department Breakdown"):
+                with st.expander("Explain Department Breakdown"):
                     st.markdown("""
                     This bar chart shows how much revenue each department contributes within the filtered data range.
                     It’s useful for seeing which areas bring in the most revenue.
                     """)
+                    st.markdown("""
+يُظهر هذا الرسم البياني العمودي مقدار الإيرادات التي يساهم بها كل قسم ضمن النطاق المحدد.
+من المفيد رؤية المناطق التي تحقق أكبر إيرادات.
+                    """)
 
         # ------------------------------- KPIs ----------------------------------
         elif choice == "KPIs":
-            st.header("Key Performance Indicators (KPIs) (Filtered)")
+            st.header("Key Performance Indicators (KPIs)")
             # Calculate KPIs only if columns exist
             needed_columns = ["TotalRevenue", "OccupiedRooms", "AvailableRooms", "ADR"]
             if all(col in filtered_data.columns for col in needed_columns):
@@ -557,7 +620,7 @@ else:
 
         # ---------------- CANCELLATION & NO-SHOW ANALYSIS ----------------------
         elif choice == "Cancellation & No-Show Analysis":
-            st.header("Cancellation & No-Show Analysis (Filtered)")
+            st.header("Cancellation & No-Show Analysis")
 
             if "ReservationStatus" in filtered_data.columns:
                 # Count how many bookings are Completed, Canceled, or No-Show
@@ -599,7 +662,7 @@ else:
 
         # -------------- GUEST RETENTION & REPEAT VISITS ANALYSIS --------------
         elif choice == "Guest Retention & Repeat Visits":
-            st.header("Guest Retention & Repeat Visits Analysis (Filtered)")
+            st.header("Guest Retention & Repeat Visits Analysis")
             st.write("""
             This section helps identify repeat guests vs. first-time guests, 
             and how often guests return over time.
@@ -730,7 +793,7 @@ else:
 
         # ----------------- ROOM TYPE PROFITABILITY ANALYSIS -------------------
         elif choice == "Room Type Profitability Analysis":
-            st.header("Room Type Profitability Analysis (Filtered)")
+            st.header("Room Type Profitability Analysis")
             st.write("""
             Analyze the net revenue, profit margin (if costs are available), and occupancy rates by room type
             to see which room types are most profitable.
@@ -751,7 +814,7 @@ else:
                     melted,
                     x="RoomType",
                     y="Revenue",
-                    title="Total Revenue by Room Type (Filtered)"
+                    title="Total Revenue by Room Type"
                 )
                 st.plotly_chart(fig_room_revenue)
             else:
@@ -778,7 +841,7 @@ else:
 
         # --------------------- CLTV (CUSTOMER LIFETIME VALUE) ------------------
         elif choice == "CLTV Estimation":
-            st.header("Customer Lifetime Value (CLTV) Estimation (Filtered)")
+            st.header("Customer Lifetime Value (CLTV) Estimation")
             st.write("""
             Estimate how valuable each guest is over their entire “lifetime” with your property.
             This can guide marketing and retention strategies.

@@ -26,7 +26,7 @@ else:
     st.title("Four Season Data Analysis Dashboard")
     st.sidebar.title("MindShift")
     st.sidebar.write("Explore different analyses:")
-    st.image("Four-Seasons.jpg", width=200)
+    st.image("mindshift.jpg", width=200)
 
     # File Upload
     uploaded_file = st.file_uploader("Upload your file (csv, txt, xlsx, xls)", type=["csv", "txt", "xlsx", "xls"])

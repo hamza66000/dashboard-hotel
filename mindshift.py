@@ -23,7 +23,7 @@ if not st.session_state["logged_in"]:
     login()
 else:
     # Streamlit App Title
-    st.title("Four Season Data Analysis Dashboard")
+    st.title("Intelligent Dashboard Analytics")
     st.sidebar.title("MindShift")
     st.sidebar.write("Explore different analyses:")
     st.image("mindshift.jpg", width=200)

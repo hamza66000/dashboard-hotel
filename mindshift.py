@@ -6,6 +6,40 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 from datetime import timedelta
 
+
+st.set_page_config(
+    page_title="MindShift",
+    page_icon="mindshift.jpg",
+    layout="wide"
+)
+
+# Inject a bit of CSS to center text and the image
+st.markdown("""
+    <style>
+    .centered {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    .title {
+        font-size: 3rem;
+        font-weight: 700;
+    }
+    .subtitle {
+        font-size: 1.2rem;
+        color: #555;
+        margin-bottom: 2rem;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+st.markdown('<div class="centered">', unsafe_allow_html=True)
+st.markdown('<div class="title">MindShift .Explore. Innovate. Succeed</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Empowering You to Think Differently</div>', unsafe_allow_html=True)
+st.image("lighting-removebg-preview.png", width=300)
+st.markdown('</div>', unsafe_allow_html=True)
+
 # Login Functionality
 def login():
     st.sidebar.header("Login")

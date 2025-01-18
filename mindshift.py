@@ -4,6 +4,7 @@ import plotly.express as px
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 import numpy as np
+from datetime import timedelta
 
 # Login Functionality
 def login():
@@ -60,6 +61,36 @@ else:
             data["DoubleRoomRevenue"] = 0
             data["RoyalRoomRevenue"] = 0
             data["FamilyRoomRevenue"] = 0  # Add Family Room
+
+        # Calculate Room Costs
+        unit_prices = {
+            "Single Room": 470,
+            "Double Room": 680,
+            "Family Room": 729,
+            "Royal Room": 800
+        }
+        data["RoomCost"] = (
+            data["SingleRoomsOccupied"] * unit_prices["Single Room"] +
+            data["DoubleRoomsOccupied"] * unit_prices["Double Room"] +
+            data["FamilyRoomsOccupied"] * unit_prices["Family Room"] +
+            data["RoyalRoomsOccupied"] * unit_prices["Royal Room"]
+        )
+
+        # Calculate Profit
+        data["Profit"] = data["TotalRevenue"] - (
+            data["RoomCost"] +
+            data["UtilityCostElectricity"] +
+            data["UtilityCostWater"] +
+            data["UtilityCostGas"] +
+            data["StaffSalaryHousekeeping"] +
+            data["StaffSalaryFrontDesk"] +
+            data["StaffSalaryMaintenance"] +
+            data["StaffSalaryF&B"] +
+            data["StaffSalaryMarketing"] +
+            data["MaintenanceCost"] +
+            data["DepreciationCost"] +
+            data["MealPlanCost"]
+        )
 
         room_revenue_per_year = (
             data.groupby("Year")[["SingleRoomRevenue", "DoubleRoomRevenue", "RoyalRoomRevenue", "FamilyRoomRevenue"]]
@@ -119,7 +150,11 @@ else:
             "Operational Efficiency & Resource Allocation",
             "Room Type Profitability Analysis",
             "CLTV Estimation",
-            "Upselling & Cross-Selling"
+            "Upselling & Cross-Selling",
+            "Room Cost Analysis",  # New option for Room Cost Analysis
+            "Dynamic Pricing Suggestions",  # New option for Dynamic Pricing Suggestions
+            "Guest Preferences",  # New option for Guest Preferences
+            "Scenario Planning"  # New option for Scenario Planning
         ]
         choice = st.sidebar.radio("Select a category", options)
 
@@ -905,6 +940,156 @@ else:
                     st.write("No 'TotalRevenue' column to check correlation with upsell items.")
             else:
                 st.write("No dedicated upsell/cross-sell columns found (e.g., F&B Revenue, Spa Revenue, etc.).")
+
+        # ------------------------ ROOM COST ANALYSIS ---------------------------
+        elif choice == "Room Cost Analysis":
+            st.header("Room Cost Analysis")
+            st.write("""
+            Analyze the cost of rooms, compare it with revenue and profit, and identify the most profitable rooms.
+            """)
+
+            # Monthly Cost vs Revenue vs Profit Chart
+            st.subheader("Monthly Cost vs Revenue vs Profit")
+            if "Date" in filtered_data.columns and "TotalRevenue" in filtered_data.columns and "Profit" in filtered_data.columns:
+                monthly_data = (
+                    filtered_data
+                    .groupby(filtered_data["Date"].dt.to_period("M").astype(str))
+                    .agg({
+                        "TotalRevenue": "sum",
+                        "Profit": "sum",
+                        "RoomCost": "sum"
+                    })
+                    .reset_index()
+                )
+                monthly_data.rename(columns={"Date": "Month"}, inplace=True)
+
+                fig_monthly = px.line(
+                    monthly_data,
+                    x="Month",
+                    y=["TotalRevenue", "Profit", "RoomCost"],
+                    title="Monthly Revenue, Profit, and Room Cost",
+                    markers=True
+                )
+                st.plotly_chart(fig_monthly)
+                with st.expander("Explain Monthly Cost vs Revenue vs Profit"):
+                    st.markdown("""
+                    This chart shows how revenue, profit, and room costs change over time.
+                    - **TotalRevenue**: Total revenue generated each month.
+                    - **Profit**: Total profit after deducting all costs.
+                    - **RoomCost**: Total cost of rooms for each month.
+                    """)
+                    st.markdown("""
+                    **يُظهر هذا الرسم البياني كيفية تغير الإيرادات والأرباح وتكاليف الغرف بمرور الوقت.**
+                    - **إجمالي الإيرادات**: إجمالي الإيرادات التي تم تحقيقها كل شهر.
+                    - **الربح**: إجمالي الربح بعد خصم جميع التكاليف.
+                    - **تكلفة الغرف**: إجمالي تكلفة الغرف لكل شهر.
+                    """)
+            else:
+                st.write("Required columns for monthly cost vs revenue vs profit analysis are missing.")
+
+            # Top 10 Profitable Rooms Chart
+            st.subheader("Top 10 Profitable Rooms")
+            if "RoomType" in filtered_data.columns and "Profit" in filtered_data.columns:
+                room_profit = (
+                    filtered_data
+                    .groupby("RoomType")["Profit"]
+                    .sum()
+                    .reset_index()
+                    .sort_values("Profit", ascending=False)
+                    .head(10)
+                )
+                fig_top_rooms = px.bar(
+                    room_profit,
+                    x="RoomType",
+                    y="Profit",
+                    title="Top 10 Profitable Rooms",
+                    labels={"Profit": "Total Profit", "RoomType": "Room Type"}
+                )
+                st.plotly_chart(fig_top_rooms)
+                with st.expander("Explain Top 10 Profitable Rooms"):
+                    st.markdown("""
+                    This chart shows the top 10 most profitable room types based on total profit.
+                    Use this to identify which room types are generating the most profit.
+                    """)
+                    st.markdown("""
+                    **يُظهر هذا الرسم البياني أفضل 10 أنواع غرف من حيث الربح الإجمالي.**
+                    **استخدم هذا لتحديد أنواع الغرف التي تحقق أكبر ربح.**
+                    """)
+            else:
+                st.write("Need Adjusting strategy.")
+
+        # ------------------------ DYNAMIC PRICING SUGGESTIONS ------------------
+        elif choice == "Dynamic Pricing Suggestions":
+            st.header("Dynamic Pricing Suggestions")
+            st.write("""
+            Optimize room pricing strategies based on historical data, demand, and competition.
+            The suggested pricing is calculated using regression analysis on historical data.
+            """)
+
+            if "Date" in filtered_data.columns and "ADR" in filtered_data.columns:
+                # Prepare the data for regression analysis
+                pricing_data = filtered_data[["Date", "ADR", "OccupiedRooms"]].dropna()
+                pricing_data["DayOfWeek"] = pricing_data["Date"].dt.dayofweek  # Add day of the week as a feature
+
+                # Train a regression model
+                from sklearn.model_selection import train_test_split
+                from sklearn.linear_model import LinearRegression
+
+                X = pricing_data[["DayOfWeek", "OccupiedRooms"]]
+                y = pricing_data["ADR"]
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+                model = LinearRegression()
+                model.fit(X_train, y_train)
+
+                # Predict optimal pricing for the next 7 days
+                next_week = pd.date_range(start=filtered_data["Date"].max() + timedelta(days=1), periods=7)
+                next_week_data = pd.DataFrame({
+                    "DayOfWeek": next_week.dayofweek,
+                    "OccupiedRooms": [filtered_data["OccupiedRooms"].mean()] * 7
+                })
+                predictions = model.predict(next_week_data)
+
+                # Display predictions
+                st.subheader("Recommended Pricing for the Next 7 Days")
+                prediction_df = pd.DataFrame({"Date": next_week, "Recommended ADR": predictions})
+                st.table(prediction_df)
+
+        # ------------------------ GUEST PREFERENCES ----------------------------
+        elif choice == "Guest Preferences":
+            st.header("Guest Preferences Recommendations")
+            st.write("""
+            Provide personalized recommendations to guests based on their preferences and booking history.
+            """)
+
+            if "GuestID" in filtered_data.columns and "LoyaltyTier" in filtered_data.columns:
+                # Example: Recommend room upgrades for Platinum loyalty members
+                platinum_guests = filtered_data[filtered_data["LoyaltyTier"] == "Platinum"]
+
+                st.subheader("Upgrade Recommendations for Platinum Guests")
+                if not platinum_guests.empty:
+                    platinum_guests["UpgradeRecommendation"] = "Royal Room"
+                    st.write(platinum_guests[["GuestID", "LoyaltyTier", "UpgradeRecommendation"]].head(10))
+                else:
+                    st.write("No Platinum members in the filtered data.")
+
+        # ------------------------ SCENARIO PLANNING ----------------------------
+        elif choice == "Scenario Planning":
+            st.header("Scenario Planning")
+            st.write("""
+            Simulate the impact of different scenarios (e.g., price changes, marketing spend) on revenue and occupancy.
+            """)
+
+            # Example: Simulate impact of increasing ADR by 10%
+            st.subheader("Simulate Impact of Price Changes")
+            price_change = st.slider("Select Price Change (%)", min_value=-50, max_value=50, value=10)
+            new_adr = filtered_data["ADR"] * (1 + price_change / 100)
+
+            # Calculate new revenue
+            new_revenue = new_adr * filtered_data["OccupiedRooms"]
+
+            # Display results
+            st.write(f"With a {price_change}% change in ADR:")
+            st.write(f"Estimated Total Revenue: ${new_revenue.sum():,.2f}")
 
         # ------------------------ SIDEBAR FOOTER -------------------------------
         st.sidebar.write("For inquiries, contact us at htssociete@hotmail.com.")
